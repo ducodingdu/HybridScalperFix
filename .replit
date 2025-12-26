@@ -33,3 +33,11 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+TELEGRAM_BOT_TOKEN = "7600005956:AAFbzM7DV3d3qsrJq2h8GzcKVGwd5UbLXqM"
+TELEGRAM_CHAT_ID = "5492079566"
+ALPHA_VANTAGE_API_KEY = "BOCYPEKD4X0VKDPI"
+SECTORS_API_KEY = "FhSlR8Sqp965jFFHHT8wYmnAhfCaF4rE"
