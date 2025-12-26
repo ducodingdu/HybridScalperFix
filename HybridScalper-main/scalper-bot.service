@@ -1,0 +1,18 @@
+[Unit]
+Description=Hybrid Scalper Bot - Indonesian Stock Trading Signal Bot
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/hybrid-scalper-bot
+Environment="PATH=/home/ubuntu/hybrid-scalper-bot/venv/bin"
+EnvironmentFile=/home/ubuntu/hybrid-scalper-bot/.env
+ExecStart=/home/ubuntu/hybrid-scalper-bot/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers=1 --threads=2 --timeout=120 --reuse-port app:app
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

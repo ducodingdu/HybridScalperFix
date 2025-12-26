@@ -1,0 +1,24 @@
+# Railway ignore file
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.env.local
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Oracle deployment files (not needed for Railway)
+deploy.sh
+scalper-bot.service
+ORACLE_DEPLOY.md
+QUICK_START_ORACLE.md
+oracle-deployment-files.tar.gz
+
+# Replit specific
+.replit
+uv.lock
+.pythonlibs/
