@@ -104,7 +104,7 @@ def get_dynamic_top_movers():
         return []
 
 def get_idx_top_gainers_yfinance():
-    """Mendapatkan top gainers dari IDX menggunakan YFinance (100% GRATIS)"""
+    """Mendapatkan top gainers dari IDX menggunakan YFinance (100% GRATIS) - dengan improved error handling"""
     try:
         print("🔍 Scanning IDX top gainers via YFinance...")
         
@@ -123,12 +123,13 @@ def get_idx_top_gainers_yfinance():
         ]
         
         gainers = []
+        success_count = 0
         
-        for ticker in idx_tickers[:50]:  # Limit 50 untuk speed
+        for ticker in idx_tickers[:30]:  # Reduce dari 50 ke 30 untuk speed & reliability
             try:
                 stock = yf.Ticker(ticker)
-                hist = stock.history(period='2d')
-                info = stock.info
+                # Gunakan timeout dan handle network issues
+                hist = stock.history(period='2d', timeout=10)
                 
                 if len(hist) >= 2:
                     latest_close = hist['Close'].iloc[-1]
@@ -140,7 +141,11 @@ def get_idx_top_gainers_yfinance():
                     # Filter: minimal gain 0.5% dan volume > 100k
                     if pct_change > 0.5 and volume > 100000:
                         symbol = ticker.replace('.JK', '')
-                        market_cap = info.get('marketCap', 0) / 1_000_000_000  # Dalam Miliar
+                        try:
+                            info = stock.info
+                            market_cap = info.get('marketCap', 0) / 1_000_000_000  # Dalam Miliar
+                        except:
+                            market_cap = 0
                         
                         gainers.append({
                             "symbol": symbol,
@@ -149,17 +154,22 @@ def get_idx_top_gainers_yfinance():
                             "volume": int(volume),
                             "market_cap": market_cap
                         })
+                        success_count += 1
             except Exception as e:
+                # Silent continue untuk avoid spam logs
                 continue
+            
+            # Add small delay to avoid API throttling
+            time.sleep(0.5)
         
         # Sort by change percentage
         gainers.sort(key=lambda x: float(x['change_percent'].replace('%', '')), reverse=True)
         
         if gainers:
-            print(f"✅ YFinance: Ditemukan {len(gainers)} top gainers")
+            print(f"✅ YFinance: Ditemukan {len(gainers)} top gainers (scanned {success_count} sukses)")
             return gainers[:10]  # Return top 10
         
-        print("⚠️ YFinance: Tidak ada gainers ditemukan")
+        print("⚠️ YFinance: Tidak ada gainers ditemukan (possible market closed atau data unavailable)")
         return []
         
     except Exception as e:
@@ -167,18 +177,29 @@ def get_idx_top_gainers_yfinance():
         return []
 
 def get_idx_top_gainers_scraper():
-    """Mendapatkan top gainers dari IDX official website (100% GRATIS)"""
+    """Mendapatkan top gainers dari IDX official website (100% GRATIS) - dengan improved headers"""
     try:
         print("🔍 Scraping IDX official top gainers...")
         
         # IDX official endpoint (internal API)
         url = "https://www.idx.co.id/umbraco/Surface/ListedCompany/GetStockGainerLoser"
+        
+        # Better headers to avoid 403 Forbidden
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'application/json'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer': 'https://www.idx.co.id/',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'xhr',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin'
         }
         
-        response = requests.get(url, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
         
         if response.status_code == 200:
             data = response.json()
