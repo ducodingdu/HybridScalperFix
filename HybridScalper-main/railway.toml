@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn --bind 0.0.0.0:$PORT --workers=1 --threads=2 --timeout=120 app:app"
+startCommand = "cd HybridScalper-main && gunicorn --bind 0.0.0.0:$PORT --workers=1 --threads=2 --timeout=120 app:app"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "always"
