@@ -1,10 +1,10 @@
 modules = ["python-3.11"]
-[nix]
-channel = "stable-25_05"
-packages = ["glibcLocales", "unzip", "xcodebuild", "zlib"]
-
 [agent]
 expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["glibcLocales", "xcodebuild", "zlib"]
 
 [workflows]
 runButton = "Project"
@@ -16,28 +16,32 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "HybridScalper Bot"
+args = "Server"
 
 [[workflows.workflow]]
-name = "HybridScalper Bot"
+name = "Server"
 author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd HybridScalper-main && python app.py"
-waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "gunicorn --bind=0.0.0.0:5000 --reuse-port --workers=1 --threads=2 --timeout=120 app:app"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
-[userenv]
+[[ports]]
+localPort = 38993
+externalPort = 3000
 
-[userenv.shared]
-TELEGRAM_BOT_TOKEN = "7600005956:AAFbzM7DV3d3qsrJq2h8GzcKVGwd5UbLXqM"
-TELEGRAM_CHAT_ID = "5492079566"
-ALPHA_VANTAGE_API_KEY = "BOCYPEKD4X0VKDPI"
-SECTORS_API_KEY = "FhSlR8Sqp965jFFHHT8wYmnAhfCaF4rE"
+[[ports]]
+localPort = 46539
+externalPort = 3001
+
+[deployment]
+deploymentTarget = "vm"
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "--workers=1", "--threads=2", "--timeout=120", "app:app"]
